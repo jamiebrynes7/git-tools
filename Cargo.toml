@@ -1,0 +1,6 @@
+[package]
+name = "git-tools"
+version = "0.1.0"
+authors = ["Jamie Brynes <jamiebrynes7@gmail.com>"]
+
+[dependencies]

@@ -3,4 +3,8 @@ name = "git-tools"
 version = "0.1.0"
 authors = ["Jamie Brynes <jamiebrynes7@gmail.com>"]
 
+[lib]
+name = "git_shared"
+path = "src/lib/git_shared.rs"
+
 [dependencies]

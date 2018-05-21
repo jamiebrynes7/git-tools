@@ -1,11 +1,8 @@
+extern crate git_shared;
+use git_shared::{ error_and_exit, run_git_command, get_list_branches };
+
 use std::io::{self, Write};
 use std::process;
-
-struct ProcessOutput {
-    stdout: String,
-    stderr: String,
-    code: i32
-}
 
 enum UserInputResult {
     Invalid(String),
@@ -13,16 +10,8 @@ enum UserInputResult {
     Exit
 }
 
-fn main() 
-{
-    let list_branches_command = run_git_command(&vec!["branch".to_string(), "--list".to_string()]);
-
-    if !list_branches_command.stderr.is_empty()
-    {
-        error_and_exit(format!("git branch --list failed with:\n{}", list_branches_command.stderr))
-    }
-
-    let branch_list = get_list_branches(list_branches_command.stdout);
+fn main() {
+    let branch_list = get_list_branches();
     let desired_branch_index = select_branch_index(&branch_list) - 1;
 
     let switch_branch_command = run_git_command(&vec!["checkout".to_string(), branch_list[desired_branch_index].clone()]);
@@ -31,47 +20,7 @@ fn main()
     }
 }
 
-fn error_and_exit(error_message: String) {
-    println!("{}", error_message);
-    process::exit(1);
-}
-
-fn run_git_command(args: &Vec<String>) -> ProcessOutput {
-    let command_response = process::Command::new("git").args(args.clone()).output();
-
-    let out = match command_response {
-        Ok(v) => v,
-        Err(e) => panic!("Error: {}", e)
-    };
-
-    let stdout = match String::from_utf8(out.stdout) {
-        Ok(v) => v,
-        Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-    };
-
-    let stderr = match String::from_utf8(out.stderr) {
-        Ok(v) => v,
-        Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-    };
-
-    let code = out.status.code().expect(&format!("No error code in command: git {:?}", args));
-
-    ProcessOutput { stdout, stderr, code }
-}
-
-fn get_list_branches(stdout: String) -> Vec<String> {
-    let branches = stdout.split("\n").collect::<Vec<&str>>();
-    let cleaned_branches: Vec<String> = branches.iter()
-        .map(|s| s.replace("*", ""))
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
-        .collect();
-    
-    return cleaned_branches
-}
-
 fn select_branch_index(branches: &Vec<String>) -> usize {
-
     println!("\nSelect a branch:");
     let mut branch_index: u8 = 1;
     for branch in branches {
@@ -89,7 +38,6 @@ fn select_branch_index(branches: &Vec<String>) -> usize {
 }
 
 fn get_user_input(max_value: usize) -> UserInputResult {
-
     print!("\n> ");
     io::stdout().flush().unwrap();
     let mut user_input = String::new();

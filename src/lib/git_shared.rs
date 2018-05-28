@@ -6,7 +6,43 @@ pub struct ProcessOutput {
     pub code: i32
 }
 
-pub fn get_list_branches() -> Vec<String> {
+#[derive(PartialEq, Eq, Hash)]
+pub struct GitBranch {
+    pub name: String,
+    pub remote_prefix: Option<String>
+}
+
+impl std::fmt::Display for GitBranch {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self.remote_prefix {
+            Some(ref prefix) => write!(f, "* remotes/{}/{}", prefix, self.name),
+            None => write!(f, "* {}", self.name)
+        }
+    }
+}
+
+impl std::clone::Clone for GitBranch {
+    fn clone(&self) -> GitBranch {
+        GitBranch {name: self.name.clone(), remote_prefix: self.remote_prefix.clone()}
+    }
+}
+
+pub fn parse_list_branch(raw_branch_data: &Vec<String>) -> Vec<GitBranch> {
+    let branch_list = raw_branch_data
+        .iter().map(|s| {
+            match s.starts_with("remotes/") {
+                true => GitBranch {
+                    name: s.split("/").nth(2).unwrap().to_string(),
+                    remote_prefix: Some(s.split("/").nth(1).unwrap().to_string())
+                },
+                false => GitBranch { name: s.clone(), remote_prefix: None}
+            }
+        }).collect();
+
+    return branch_list
+}
+
+pub fn get_list_branches() -> Vec<GitBranch> {
 
     let list_branches_command = run_git_command(&vec!["branch".to_string(), "--list".to_string()]);
     if list_branches_command.code != 0 {
@@ -20,7 +56,7 @@ pub fn get_list_branches() -> Vec<String> {
         .filter(|s| !s.is_empty())
         .collect();
 
-    return cleaned_branches
+    return parse_list_branch(&cleaned_branches);
 }
 
 pub fn run_git_command(args: &Vec<String>) -> ProcessOutput {

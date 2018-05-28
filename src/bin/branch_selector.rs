@@ -1,5 +1,5 @@
 extern crate git_shared;
-use git_shared::{ error_and_exit, run_git_command, get_list_branches };
+use git_shared::{ GitBranch, error_and_exit, run_git_command, get_list_branches };
 
 use std::io::{self, Write};
 use std::process;
@@ -14,17 +14,17 @@ fn main() {
     let branch_list = get_list_branches();
     let desired_branch_index = select_branch_index(&branch_list) - 1;
 
-    let switch_branch_command = run_git_command(&vec!["checkout".to_string(), branch_list[desired_branch_index].clone()]);
+    let switch_branch_command = run_git_command(&vec!["checkout".to_string(), branch_list[desired_branch_index].name.clone() ]);
     if switch_branch_command.code != 0 {
         error_and_exit(format!("Switching branches failed with:\n{}", switch_branch_command.stderr))
     }
 }
 
-fn select_branch_index(branches: &Vec<String>) -> usize {
+fn select_branch_index(branches: &Vec<GitBranch>) -> usize {
     println!("\nSelect a branch:");
     let mut branch_index: u8 = 1;
     for branch in branches {
-        println!("  {}) {}", branch_index, branch);
+        println!("  {}) {}", branch_index, branch.name);
         branch_index += 1;
     }
 

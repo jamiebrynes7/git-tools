@@ -15,8 +15,8 @@ pub struct GitBranch {
 impl std::fmt::Display for GitBranch {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self.remote_prefix {
-            Some(ref prefix) => write!(f, "* remotes/{}/{}", prefix, self.name),
-            None => write!(f, "* {}", self.name)
+            Some(ref prefix) => write!(f, "remotes/{}/{}", prefix, self.name),
+            None => write!(f, "{}", self.name)
         }
     }
 }
@@ -25,21 +25,6 @@ impl std::clone::Clone for GitBranch {
     fn clone(&self) -> GitBranch {
         GitBranch {name: self.name.clone(), remote_prefix: self.remote_prefix.clone()}
     }
-}
-
-pub fn parse_list_branch(raw_branch_data: &Vec<String>) -> Vec<GitBranch> {
-    let branch_list = raw_branch_data
-        .iter().map(|s| {
-            match s.starts_with("remotes/") {
-                true => GitBranch {
-                    name: s.split("/").nth(2).unwrap().to_string(),
-                    remote_prefix: Some(s.split("/").nth(1).unwrap().to_string())
-                },
-                false => GitBranch { name: s.clone(), remote_prefix: None}
-            }
-        }).collect();
-
-    return branch_list
 }
 
 pub fn get_list_branches() -> Vec<GitBranch> {
@@ -56,7 +41,34 @@ pub fn get_list_branches() -> Vec<GitBranch> {
         .filter(|s| !s.is_empty())
         .collect();
 
-    return parse_list_branch(&cleaned_branches);
+    return parse_list_branch(&cleaned_branches, "remotes");
+}
+pub fn get_pruned_branches(stdout: String) -> Vec<GitBranch> {
+    let pruned_branches: Vec<String> = stdout.split("\n")
+        .collect::<Vec<&str>>().iter()
+        .filter(|s| s.contains("*"))
+        .map(|s| s.replace("*", ""))
+        .map(|s| s.split("]").nth(1).unwrap().to_string())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    return parse_list_branch(&pruned_branches, "origin");
+}
+
+fn parse_list_branch(raw_branch_data: &Vec<String>, remote_identifier: &str) -> Vec<GitBranch> {
+    let branch_list = raw_branch_data
+        .iter().map(|s| {
+        match s.starts_with(remote_identifier) {
+            true => GitBranch {
+                name: s.split((remote_identifier.to_string() + "/").as_str()).nth(1).unwrap().to_string(),
+                remote_prefix: Some(remote_identifier.to_string())
+            },
+            false => GitBranch { name: s.clone(), remote_prefix: None}
+        }
+    }).collect();
+
+    return branch_list
 }
 
 pub fn run_git_command(args: &Vec<String>) -> ProcessOutput {

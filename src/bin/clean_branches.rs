@@ -1,5 +1,5 @@
 extern crate git_shared;
-use git_shared::{ ProcessOutput, error_and_exit, run_git_command, get_list_branches };
+use git_shared::{ GitBranch, ProcessOutput, error_and_exit, run_git_command, get_list_branches, parse_list_branch };
 
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -15,8 +15,8 @@ fn main() {
         error_and_exit(format!("git prune remote origin failed with:\n{}", git_prune_origin_command.stderr));
     }
 
-    let pruned_branch_list : HashSet<String> = HashSet::from_iter(get_pruned_branches(git_prune_origin_command.stdout).iter().cloned());
-    let branch_list : HashSet<String> = HashSet::from_iter(get_list_branches().iter().cloned());
+    let pruned_branch_list : HashSet<GitBranch> = HashSet::from_iter(get_pruned_branches(git_prune_origin_command.stdout).iter().cloned());
+    let branch_list : HashSet<GitBranch> = HashSet::from_iter(get_list_branches().iter().cloned());
     let branches_to_delete: Vec<String> = pruned_branch_list.intersection(&branch_list)
         .map(|s| s.to_string())
         .collect();
@@ -32,14 +32,16 @@ fn main() {
     }
 }
 
-fn get_pruned_branches(stdout: String) -> Vec<String> {
+fn get_pruned_branches(stdout: String) -> Vec<GitBranch> {
     let pruned_branches: Vec<String> = stdout.split("\n")
         .collect::<Vec<&str>>().iter()
         .filter(|s| s.contains("*"))
-        .map(|s| s.split("origin/").nth(1).unwrap().to_string())
+        .map(|s| s.replace("*", ""))
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
         .collect();
 
-    return pruned_branches
+    return parse_list_branch(&pruned_branches);
 }
 
 fn get_user_confirmation(branches_to_delete: &Vec<String>) -> bool {

@@ -1,0 +1,20 @@
+dist: trusty
+language: rust
+services: docker
+sudo: required
+
+matrix:
+  include:
+    - env: TARGET=x86_64-unknown-linux-gnu
+    - env: TARGET=x86_64-pc-windows-gnu
+
+before_install:
+  - set -e 
+  - rustup self update
+
+install: 
+  - sh ci/install.sh
+  - source ~/.cargo/env || true
+
+script: 
+  - sh ci/build.sh

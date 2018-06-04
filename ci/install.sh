@@ -6,17 +6,9 @@ set -ex
 
 cd "$(dirname $0)/../"
 
-
-rustfmt_check=$(rustup component list | grep "rustfmt" | grep "installed")
-
-if [ -z ${rustfmt_check} ]; then
-    echo "Fetching rust linter"
-    rustup component add rustfmt-preview
-fi
-
+rustup component add rustfmt-preview
 
 # Fetch cross compilation tool
-
 dest="cross/"
 
 if [ -f "${dest}/cross" ]; then

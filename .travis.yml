@@ -17,4 +17,5 @@ install:
   - source ~/.cargo/env || true
 
 script: 
+  - sh ci/lint-check.sh
   - sh ci/build.sh

@@ -6,6 +6,9 @@ set -ex
 
 cd "$(dirname $0)/../"
 
+rustup component add rustfmt-preview
+
+# Fetch cross compilation tool
 dest="cross/"
 
 if [ -f "${dest}/cross" ]; then

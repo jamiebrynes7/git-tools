@@ -8,3 +8,4 @@ name = "git"
 path = "src/lib/lib.rs"
 
 [dependencies]
+clap = "2"

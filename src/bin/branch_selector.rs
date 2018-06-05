@@ -1,5 +1,7 @@
-extern crate git_shared;
-use git_shared::{error_and_exit, get_list_branches, run_git_command, GitBranch};
+extern crate git;
+use git::commands::branches::get_list_branches;
+use git::git_branch::{BranchOperations, GitBranch};
+use git::utils::errors::*;
 
 use std::io::{self, Write};
 use std::process;
@@ -11,18 +13,18 @@ enum UserInputResult {
 }
 
 fn main() {
-    let branch_list = get_list_branches();
+    let branch_list = match get_list_branches() {
+        Ok(list) => list,
+        Err(e) => {
+            error_and_exit(e);
+            panic!()
+        }
+    };
     let desired_branch_index = select_branch_index(&branch_list) - 1;
 
-    let switch_branch_command = run_git_command(&vec![
-        "checkout".to_string(),
-        branch_list[desired_branch_index].name.clone(),
-    ]);
-    if switch_branch_command.code != 0 {
-        error_and_exit(format!(
-            "Switching branches failed with:\n{}",
-            switch_branch_command.stderr
-        ))
+    match branch_list[desired_branch_index].checkout(true) {
+        Ok(_) => {}
+        Err(e) => error_and_exit(e),
     }
 }
 

@@ -1,27 +1,26 @@
 extern crate git;
-use git::git_shared::{error_and_exit, get_list_branches, get_pruned_branches, run_git_command,
-                      ProcessOutput};
-use git::git_branch::GitBranch;
+use git::git_branch::{GitBranch, BranchOperations};
+use git::commands::prune::{get_pruned_branches, prune_branches};
+use git::commands::branches::get_list_branches;
+use git::utils::errors::*;
 
 use std::io::{self, Write};
 
 fn main() {
-    let git_prune_origin_command = run_git_command(&vec![
-        "remote".to_string(),
-        "prune".to_string(),
-        "origin".to_string(),
-        "--dry-run".to_string(),
-    ]);
-
-    if git_prune_origin_command.code != 0 {
-        error_and_exit(format!(
-            "git prune remote origin failed with:\n{}",
-            git_prune_origin_command.stderr
-        ));
-    }
-
-    let pruned_branch_list = get_pruned_branches(git_prune_origin_command.stdout);
-    let branch_list = get_list_branches();
+    let pruned_branch_list = match get_pruned_branches() {
+        Ok(list) => list,
+        Err(e) => {
+            error_and_exit(e);
+            panic!()
+        }
+    };
+    let branch_list = match get_list_branches() {
+        Ok(list) => list,
+        Err(e) => {
+            error_and_exit(e);
+            panic!()
+        }
+    };
     let branches_to_delete: Vec<GitBranch> = get_intersection(&pruned_branch_list, &branch_list);
 
     if branches_to_delete.len() == 0 {
@@ -79,27 +78,14 @@ fn get_user_confirmation(
 
 fn delete_branches(branches_to_delete: &Vec<GitBranch>) {
     for branch in branches_to_delete {
-        match run_git_command(&vec![
-            "branch".to_string(),
-            "-D".to_string(),
-            branch.name.clone(),
-        ]) {
-            ProcessOutput { code, .. } if code == 0 => println!("Deleting: {}", branch),
-            ProcessOutput { stderr, .. } => error_and_exit(format!(
-                "Failed to delete branch: {} with error: {}",
-                branch, stderr
-            )),
-        };
+        match branch.delete(true) {
+            Ok(_) => {},
+            Err(e) => println!("{}", e)
+        }
     }
 
-    match run_git_command(&vec![
-        "remote".to_string(),
-        "prune".to_string(),
-        "origin".to_string(),
-    ]) {
-        ProcessOutput { code, .. } if code == 0 => println!("Deleting remotes..."),
-        ProcessOutput { stderr, .. } => {
-            error_and_exit(format!("Failed to delete remotes with error: {}", stderr))
-        }
-    };
+    match prune_branches() {
+        Ok(_) => {},
+        Err(e) => println!("{}", e)
+    }
 }

@@ -1,6 +1,6 @@
 extern crate git;
-use git::git_branch::{BranchOperations, GitBranch};
 use git::commands::branches::get_list_branches;
+use git::git_branch::{BranchOperations, GitBranch};
 use git::utils::errors::*;
 
 use std::io::{self, Write};

@@ -1,7 +1,7 @@
 extern crate git;
-use git::git_branch::{GitBranch, BranchOperations};
-use git::commands::prune::{get_pruned_branches, prune_branches};
 use git::commands::branches::get_list_branches;
+use git::commands::prune::{get_pruned_branches, prune_branches};
+use git::git_branch::{BranchOperations, GitBranch};
 use git::utils::errors::*;
 
 use std::io::{self, Write};
@@ -79,13 +79,13 @@ fn get_user_confirmation(
 fn delete_branches(branches_to_delete: &Vec<GitBranch>) {
     for branch in branches_to_delete {
         match branch.delete(true) {
-            Ok(_) => {},
-            Err(e) => println!("{}", e)
+            Ok(_) => {}
+            Err(e) => println!("{}", e),
         }
     }
 
     match prune_branches() {
-        Ok(_) => {},
-        Err(e) => println!("{}", e)
+        Ok(_) => {}
+        Err(e) => println!("{}", e),
     }
 }

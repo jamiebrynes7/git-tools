@@ -1,6 +1,6 @@
 // Internal
-use git_branch::{parse_raw_branch_data, GitBranch};
 use commands::process::*;
+use git_branch::{parse_raw_branch_data, GitBranch};
 
 pub fn get_list_branches() -> Result<Vec<GitBranch>, String> {
     let list_branches_command = run_git_command(&vec!["branch".to_string(), "--list".to_string()]);
@@ -8,7 +8,7 @@ pub fn get_list_branches() -> Result<Vec<GitBranch>, String> {
         return Err(format!(
             "git branch --list failed with:\n{}",
             list_branches_command.stderr
-        ))
+        ));
     }
 
     let branches = list_branches_command

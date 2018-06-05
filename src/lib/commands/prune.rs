@@ -1,5 +1,5 @@
-use git_branch::{parse_raw_branch_data, GitBranch};
 use commands::process::*;
+use git_branch::{parse_raw_branch_data, GitBranch};
 
 pub fn get_pruned_branches() -> Result<Vec<GitBranch>, String> {
     match run_prune_branches(true) {

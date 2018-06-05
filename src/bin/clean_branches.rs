@@ -1,5 +1,5 @@
 extern crate clap;
-use clap::{Arg, App};
+use clap::{App, Arg};
 
 extern crate git;
 use git::commands::branches::get_list_branches;
@@ -9,13 +9,11 @@ use git::utils::errors::*;
 
 use std::io::{self, Write};
 
-
 struct Arguments {
-    remote_name: String
+    remote_name: String,
 }
 
 fn main() {
-
     let args = get_arguments();
 
     let pruned_branch_list = match get_pruned_branches(args.remote_name.clone()) {
@@ -50,18 +48,20 @@ fn get_arguments() -> Arguments {
         .version("0.1.0")
         .author("Jamie Brynes <jamiebrynes7@gmail.com>")
         .about("Cleans remote and local branches that have been deleted.")
-        .arg(Arg::with_name("remote-name")
-            .short("n")
-            .long("remote-name")
-            .value_name("NAME")
-            .help("The remote to base the clean off of. Default value is \"origin\"")
-            .takes_value(true))
+        .arg(
+            Arg::with_name("remote-name")
+                .short("n")
+                .long("remote-name")
+                .value_name("NAME")
+                .help("The remote to base the clean off of. Default value is \"origin\"")
+                .takes_value(true),
+        )
         .get_matches();
 
     let remote_name = matches.value_of("remote-name").unwrap_or("origin");
 
     Arguments {
-        remote_name: remote_name.to_string()
+        remote_name: remote_name.to_string(),
     }
 }
 

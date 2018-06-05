@@ -1,8 +1,8 @@
 use commands::process::*;
 use git_branch::{parse_raw_branch_data, GitBranch};
 
-pub fn get_pruned_branches() -> Result<Vec<GitBranch>, String> {
-    match run_prune_branches(true) {
+pub fn get_pruned_branches(remote: String) -> Result<Vec<GitBranch>, String> {
+    match run_prune_branches(remote,true) {
         Ok(process_output) => {
             let pruned_branches: Vec<String> = process_output
                 .stdout
@@ -22,18 +22,18 @@ pub fn get_pruned_branches() -> Result<Vec<GitBranch>, String> {
     }
 }
 
-pub fn prune_branches() -> Result<(), String> {
-    match run_prune_branches(false) {
+pub fn prune_branches(remote: String) -> Result<(), String> {
+    match run_prune_branches(remote,false) {
         Ok(_) => Ok(()),
         Err(message) => Err(message),
     }
 }
 
-fn run_prune_branches(dry_run: bool) -> Result<ProcessOutput, String> {
+fn run_prune_branches(remote: String, dry_run: bool) -> Result<ProcessOutput, String> {
     let mut args = vec![
         "remote".to_string(),
         "prune".to_string(),
-        "origin".to_string(),
+        remote.clone(),
     ];
 
     if dry_run {
@@ -44,7 +44,8 @@ fn run_prune_branches(dry_run: bool) -> Result<ProcessOutput, String> {
 
     if git_prune_origin_command.code != 0 {
         return Err(format!(
-            "git prune remote origin failed with:\n{}",
+            "git prune remote {} failed with:\n{}",
+            remote,
             git_prune_origin_command.stderr
         ));
     }

@@ -1,6 +1,7 @@
-extern crate git_shared;
-use git_shared::{error_and_exit, get_list_branches, get_pruned_branches, run_git_command,
-                 GitBranch, ProcessOutput};
+extern crate git;
+use git::git_shared::{error_and_exit, get_list_branches, get_pruned_branches, run_git_command,
+                      ProcessOutput};
+use git::git_branch::GitBranch;
 
 use std::io::{self, Write};
 

@@ -1,2 +1,3 @@
 pub mod git_branch;
-pub mod git_shared;
+pub mod utils;
+pub mod commands;

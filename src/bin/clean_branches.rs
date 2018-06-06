@@ -1,3 +1,6 @@
+extern crate clap;
+use clap::{App, Arg};
+
 extern crate git;
 use git::commands::branches::get_list_branches;
 use git::commands::prune::{get_pruned_branches, prune_branches};
@@ -6,8 +9,14 @@ use git::utils::errors::*;
 
 use std::io::{self, Write};
 
+struct Arguments {
+    remote_name: String,
+}
+
 fn main() {
-    let pruned_branch_list = match get_pruned_branches() {
+    let args = get_arguments();
+
+    let pruned_branch_list = match get_pruned_branches(args.remote_name.clone()) {
         Ok(list) => list,
         Err(e) => {
             error_and_exit(e);
@@ -29,8 +38,30 @@ fn main() {
     }
 
     match get_user_confirmation(&branches_to_delete, &pruned_branch_list) {
-        true => delete_branches(&branches_to_delete),
+        true => delete_branches(&branches_to_delete, args.remote_name.clone()),
         false => println!("Aborting operation!"),
+    }
+}
+
+fn get_arguments() -> Arguments {
+    let matches = App::new("Git Clean Branches")
+        .version("0.1.0")
+        .author("Jamie Brynes <jamiebrynes7@gmail.com>")
+        .about("Cleans remote and local branches that have been deleted.")
+        .arg(
+            Arg::with_name("remote-name")
+                .short("n")
+                .long("remote-name")
+                .value_name("NAME")
+                .help("The remote to base the clean off of. Default value is \"origin\"")
+                .takes_value(true),
+        )
+        .get_matches();
+
+    let remote_name = matches.value_of("remote-name").unwrap_or("origin");
+
+    Arguments {
+        remote_name: remote_name.to_string(),
     }
 }
 
@@ -76,7 +107,7 @@ fn get_user_confirmation(
     }
 }
 
-fn delete_branches(branches_to_delete: &Vec<GitBranch>) {
+fn delete_branches(branches_to_delete: &Vec<GitBranch>, remote_name: String) {
     for branch in branches_to_delete {
         match branch.delete(true) {
             Ok(_) => {}
@@ -84,7 +115,7 @@ fn delete_branches(branches_to_delete: &Vec<GitBranch>) {
         }
     }
 
-    match prune_branches() {
+    match prune_branches(remote_name) {
         Ok(_) => {}
         Err(e) => println!("{}", e),
     }

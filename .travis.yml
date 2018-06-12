@@ -26,8 +26,7 @@ before_deploy:
 deploy:
   provider: releases
   skip_cleanup: true
-  api_key: 
-    secure: ${GITHUB_API_TOKEN}
+  api_key: ${GITHUB_API_TOKEN}
   file_glob: true
   file: build/*
   on: 

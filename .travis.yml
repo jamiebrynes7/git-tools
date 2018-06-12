@@ -19,3 +19,16 @@ install:
 script: 
   - sh ci/lint-check.sh
   - sh ci/build.sh
+
+before_deploy:
+  - sh ci/release.sh
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key: 
+    secure: ${GITHUB_API_TOKEN}
+  file_glob: true
+  file: build/*
+  on: 
+    tags: true

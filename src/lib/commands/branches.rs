@@ -23,6 +23,7 @@ pub fn get_list_branches(show_remotes: bool) -> Result<Vec<GitBranch>, String> {
         .map(|s| s.replace("*", ""))
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
+        .filter(|s| !s.contains("->"))
         .collect();
 
     Ok(parse_raw_branch_data(&cleaned_branches, "remotes"))

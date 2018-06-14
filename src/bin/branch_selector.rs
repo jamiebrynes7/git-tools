@@ -1,3 +1,6 @@
+extern crate clap;
+use clap::{App, Arg};
+
 extern crate git;
 use git::commands::branches::get_list_branches;
 use git::git_branch::{BranchOperations, GitBranch};
@@ -6,6 +9,10 @@ use git::utils::errors::*;
 use std::io::{self, Write};
 use std::process;
 
+struct Arguments {
+    show_remotes: bool,
+}
+
 enum UserInputResult {
     Invalid(String),
     Valid(usize),
@@ -13,7 +20,9 @@ enum UserInputResult {
 }
 
 fn main() {
-    let branch_list = match get_list_branches() {
+    let args = get_arguments();
+
+    let branch_list = match get_list_branches(args.show_remotes) {
         Ok(list) => list,
         Err(e) => {
             error_and_exit(e);
@@ -25,6 +34,27 @@ fn main() {
     match branch_list[desired_branch_index].checkout(true) {
         Ok(_) => {}
         Err(e) => error_and_exit(e),
+    }
+}
+
+fn get_arguments() -> Arguments {
+    let matches = App::new("Git Select Branch")
+        .version("0.2.0")
+        .author("Jamie Brynes <jamiebrynes7@gmail.com>")
+        .about("Simple branch selector.")
+        .arg(
+            Arg::with_name("show-remotes")
+                .short("r")
+                .long("show-remotes")
+                .help("Flag to indicate whether to show remote branches as well.")
+                .takes_value(false),
+        )
+        .get_matches();
+
+    let show_remotes = matches.is_present("show-remotes");
+
+    Arguments {
+        show_remotes: show_remotes,
     }
 }
 

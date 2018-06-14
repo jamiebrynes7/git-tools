@@ -23,7 +23,7 @@ fn main() {
             panic!()
         }
     };
-    let branch_list = match get_list_branches() {
+    let branch_list = match get_list_branches(false /* No remotes*/) {
         Ok(list) => list,
         Err(e) => {
             error_and_exit(e);
@@ -45,7 +45,7 @@ fn main() {
 
 fn get_arguments() -> Arguments {
     let matches = App::new("Git Clean Branches")
-        .version("0.1.0")
+        .version("0.2.0")
         .author("Jamie Brynes <jamiebrynes7@gmail.com>")
         .about("Cleans remote and local branches that have been deleted.")
         .arg(

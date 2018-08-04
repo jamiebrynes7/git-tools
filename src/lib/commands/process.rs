@@ -23,7 +23,8 @@ pub fn run_git_command(args: &Vec<String>) -> ProcessOutput {
         Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
     };
 
-    let code = out.status
+    let code = out
+        .status
         .code()
         .expect(&format!("No error code in command: git {:?}", args));
 

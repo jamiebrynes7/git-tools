@@ -76,7 +76,8 @@ pub(crate) fn parse_raw_branch_data(
         .iter()
         .map(|s| match s.starts_with(remote_identifier) {
             true => GitBranch {
-                name: s.split((remote_identifier.to_string() + "/").as_str())
+                name: s
+                    .split((remote_identifier.to_string() + "/").as_str())
                     .nth(1)
                     .unwrap()
                     .to_string(),

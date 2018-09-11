@@ -3,19 +3,14 @@ use std;
 // Internal
 use commands::process::*;
 
-pub trait BranchOperations {
-    fn delete(&self, should_log: bool) -> Result<(), String>;
-    fn checkout(&self, should_log: bool) -> Result<(), String>;
-}
-
 #[derive(PartialEq, Eq, Hash)]
 pub struct GitBranch {
     pub name: String,
     pub remote_prefix: Option<String>,
 }
 
-impl BranchOperations for GitBranch {
-    fn delete(&self, should_log: bool) -> Result<(), String> {
+impl GitBranch {
+    pub fn delete(&self, should_log: bool) -> Result<(), String> {
         match run_git_command(&vec![
             "branch".to_string(),
             "-D".to_string(),
@@ -34,7 +29,7 @@ impl BranchOperations for GitBranch {
         }
     }
 
-    fn checkout(&self, should_log: bool) -> Result<(), String> {
+    pub fn checkout(&self, should_log: bool) -> Result<(), String> {
         match run_git_command(&vec!["checkout".to_string(), self.name.clone()]) {
             ProcessOutput { code, .. } if code == 0 => {
                 if should_log {

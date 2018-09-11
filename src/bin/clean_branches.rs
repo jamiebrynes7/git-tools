@@ -4,7 +4,7 @@ use clap::{App, Arg};
 extern crate git;
 use git::commands::branches::get_list_branches;
 use git::commands::prune::{get_pruned_branches, prune_branches};
-use git::git_branch::{BranchOperations, GitBranch};
+use git::git_branch::GitBranch;
 use git::utils::errors::*;
 
 use std::io::{self, Write};
@@ -45,7 +45,7 @@ fn main() {
 
 fn get_arguments() -> Arguments {
     let matches = App::new("Git Clean Branches")
-        .version("0.2.0")
+        .version("0.3.0")
         .author("Jamie Brynes <jamiebrynes7@gmail.com>")
         .about("Cleans remote and local branches that have been deleted.")
         .arg(

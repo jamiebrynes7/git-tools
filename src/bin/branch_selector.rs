@@ -3,7 +3,7 @@ use clap::{App, Arg};
 
 extern crate git;
 use git::commands::branches::get_list_branches;
-use git::git_branch::{BranchOperations, GitBranch};
+use git::git_branch::GitBranch;
 use git::utils::errors::*;
 
 use std::io::{self, Write};
@@ -39,7 +39,7 @@ fn main() {
 
 fn get_arguments() -> Arguments {
     let matches = App::new("Git Select Branch")
-        .version("0.2.0")
+        .version("0.3.0")
         .author("Jamie Brynes <jamiebrynes7@gmail.com>")
         .about("Simple branch selector.")
         .arg(

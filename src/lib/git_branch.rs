@@ -70,14 +70,24 @@ pub(crate) fn parse_raw_branch_data(
     let branch_list = raw_branch_data
         .iter()
         .map(|s| match s.starts_with(remote_identifier) {
-            true => GitBranch {
-                name: s
+            true => {
+                let remote_branch_name = s
                     .split((remote_identifier.to_string() + "/").as_str())
                     .nth(1)
-                    .unwrap()
-                    .to_string(),
-                remote_prefix: Some(remote_identifier.to_string()),
-            },
+                    .unwrap();
+
+                let remote = remote_branch_name.split("/").nth(0).unwrap().to_string();
+                let branch: String = remote_branch_name
+                    .split("/")
+                    .skip(1)
+                    .collect::<Vec<&str>>()
+                    .join("/");
+
+                GitBranch {
+                    name: branch,
+                    remote_prefix: Some(remote),
+                }
+            }
             false => GitBranch {
                 name: s.clone(),
                 remote_prefix: None,

@@ -62,7 +62,7 @@ fn select_branch_index(branches: &Vec<GitBranch>) -> usize {
     println!("\nSelect a branch:");
     let mut branch_index: u8 = 1;
     for branch in branches {
-        println!("  {}) {}", branch_index, branch.name);
+        println!("  {}) {}", branch_index, branch);
         branch_index += 1;
     }
 

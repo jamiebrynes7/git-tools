@@ -87,8 +87,7 @@ pub(crate) fn parse_raw_branch_data(
                 name: s.clone(),
                 remote_prefix: None,
             },
-        })
-        .collect();
+        }).collect();
 
     return branch_list;
 }

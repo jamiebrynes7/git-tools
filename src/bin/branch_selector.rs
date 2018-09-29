@@ -48,8 +48,7 @@ fn get_arguments() -> Arguments {
                 .long("show-remotes")
                 .help("Flag to indicate whether to show remote branches as well.")
                 .takes_value(false),
-        )
-        .get_matches();
+        ).get_matches();
 
     let show_remotes = matches.is_present("show-remotes");
 

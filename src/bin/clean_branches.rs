@@ -45,7 +45,7 @@ fn main() {
 
 fn get_arguments() -> Arguments {
     let matches = App::new("Git Clean Branches")
-        .version("0.3.0")
+        .version("0.3.1")
         .author("Jamie Brynes <jamiebrynes7@gmail.com>")
         .about("Cleans remote and local branches that have been deleted.")
         .arg(

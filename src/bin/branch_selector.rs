@@ -39,7 +39,7 @@ fn main() {
 
 fn get_arguments() -> Arguments {
     let matches = App::new("Git Select Branch")
-        .version("0.3.0")
+        .version("0.3.1")
         .author("Jamie Brynes <jamiebrynes7@gmail.com>")
         .about("Simple branch selector.")
         .arg(

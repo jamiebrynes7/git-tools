@@ -1,6 +1,6 @@
 // Internal
 use commands::process::*;
-use git_branch::{parse_raw_branch_data, GitBranch};
+use git_branch::{GitBranch};
 
 pub fn get_list_branches(show_remotes: bool) -> Result<Vec<GitBranch>, String> {
     let list_branches_command = match show_remotes {
@@ -27,4 +27,38 @@ pub fn get_list_branches(show_remotes: bool) -> Result<Vec<GitBranch>, String> {
         .collect();
 
     Ok(parse_raw_branch_data(&cleaned_branches, "remotes"))
+}
+
+fn parse_raw_branch_data(
+    raw_branch_data: &Vec<String>,
+    remote_identifier: &str,
+) -> Vec<GitBranch> {
+    let branch_list = raw_branch_data
+        .iter()
+        .map(|s| match s.starts_with(remote_identifier) {
+            true => {
+                let remote_branch_name = s
+                    .split((remote_identifier.to_string() + "/").as_str())
+                    .nth(1)
+                    .unwrap();
+
+                let remote = remote_branch_name.split("/").nth(0).unwrap().to_string();
+                let branch: String = remote_branch_name
+                    .split("/")
+                    .skip(1)
+                    .collect::<Vec<&str>>()
+                    .join("/");
+
+                GitBranch {
+                    name: branch,
+                    remote_prefix: Some(remote),
+                }
+            }
+            false => GitBranch {
+                name: s.clone(),
+                remote_prefix: None,
+            },
+        }).collect();
+
+    return branch_list;
 }

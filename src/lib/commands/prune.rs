@@ -1,5 +1,5 @@
 use commands::process::*;
-use git_branch::{parse_raw_branch_data, GitBranch};
+use git_branch::GitBranch;
 
 pub fn get_pruned_branches(remote: String) -> Result<Vec<GitBranch>, String> {
     match run_prune_branches(remote, true) {
@@ -46,4 +46,28 @@ fn run_prune_branches(remote: String, dry_run: bool) -> Result<ProcessOutput, St
     }
 
     return Ok(git_prune_origin_command);
+}
+
+fn parse_raw_branch_data(raw_branch_data: &Vec<String>, remote_identifier: &str) -> Vec<GitBranch> {
+    let branch_list = raw_branch_data
+        .iter()
+        .map(|s| match s.starts_with(remote_identifier) {
+            true => {
+                let branch_name = s
+                    .split((remote_identifier.to_string() + "/").as_str())
+                    .nth(1)
+                    .unwrap();
+
+                GitBranch {
+                    name: branch_name.to_string(),
+                    remote_prefix: Some(remote_identifier.to_string()),
+                }
+            }
+            false => GitBranch {
+                name: s.clone(),
+                remote_prefix: None,
+            },
+        }).collect();
+
+    return branch_list;
 }

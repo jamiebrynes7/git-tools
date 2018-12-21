@@ -55,7 +55,8 @@ fn get_arguments() -> Arguments {
                 .value_name("NAME")
                 .help("The remote to base the clean off of. Default value is \"origin\"")
                 .takes_value(true),
-        ).get_matches();
+        )
+        .get_matches();
 
     let remote_name = matches.value_of("remote-name").unwrap_or("origin");
 
@@ -75,7 +76,8 @@ fn get_intersection(
             remote_branches
                 .iter()
                 .any(|remote_branch| branch.name == remote_branch.name)
-        }).collect();
+        })
+        .collect();
 
     return intersection;
 }

@@ -67,7 +67,8 @@ fn parse_raw_branch_data(raw_branch_data: &Vec<String>, remote_identifier: &str)
                 name: s.clone(),
                 remote_prefix: None,
             },
-        }).collect();
+        })
+        .collect();
 
     return branch_list;
 }

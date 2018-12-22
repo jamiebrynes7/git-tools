@@ -1,7 +1,7 @@
 use std;
 
 // Internal
-use commands::process::*;
+use crate::commands::process::*;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct GitBranch {

@@ -1,5 +1,5 @@
-use commands::process::*;
-use git_branch::GitBranch;
+use crate::commands::process::*;
+use crate::git_branch::GitBranch;
 
 pub fn get_pruned_branches(remote: String) -> Result<Vec<GitBranch>, String> {
     match run_prune_branches(remote, true) {

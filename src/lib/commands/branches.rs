@@ -1,6 +1,6 @@
 // Internal
-use commands::process::*;
-use git_branch::GitBranch;
+use crate::commands::process::*;
+use crate::git_branch::GitBranch;
 
 pub fn get_list_branches(show_remotes: bool) -> Result<Vec<GitBranch>, String> {
     let list_branches_command = match show_remotes {

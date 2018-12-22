@@ -1,13 +1,17 @@
 dist: trusty
 language: rust
-services: docker
+rust:
+  - 1.31.1
 sudo: required
 
 matrix:
   include:
-    - env: TARGET=x86_64-unknown-linux-gnu
-    - env: TARGET=x86_64-pc-windows-gnu
-    - env: TARGET=x86_64-apple-darwin
+    - os: linux
+      env: TARGET="linux"
+    - os: windows
+      env: TARGET="windows"
+    - os: osx
+      env: TARGET="macos"
 
 before_install:
   - set -e 

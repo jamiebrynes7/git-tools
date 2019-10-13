@@ -1,7 +1,7 @@
 dist: trusty
 language: rust
 rust:
-  - 1.31.1
+  - 1.38.0
 sudo: required
 
 matrix:

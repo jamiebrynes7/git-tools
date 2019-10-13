@@ -31,7 +31,7 @@ fn main() -> Result<()> {
     branch_list[desired_branch_index].checkout()
 }
 
-fn select_branch_index(branches: &Vec<GitBranch>) -> Result<usize> {
+fn select_branch_index(branches: &[GitBranch]) -> Result<usize> {
     println!("\nSelect a branch:");
     let mut branch_index: u8 = 1;
     for branch in branches {

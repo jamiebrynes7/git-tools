@@ -32,19 +32,17 @@ fn main() -> Result<()> {
         println!("Found no local branches to delete!");
     }
 
-    match get_user_confirmation(&stale_local_branches, &pruned_branches)? {
-        true => delete_branches(&stale_local_branches, &args.remote)?,
-        false => println!("Aborting operation!"),
+    if get_user_confirmation(&stale_local_branches, &pruned_branches)? {
+        delete_branches(&stale_local_branches, &args.remote)?;
+    } else {
+        println!("Aborting operation!");
     }
 
     Ok(())
 }
 
-fn get_intersection(
-    remote_branches: &Vec<GitBranch>,
-    local_branches: &Vec<GitBranch>,
-) -> Vec<GitBranch> {
-    let intersection = local_branches
+fn get_intersection(remote_branches: &[GitBranch], local_branches: &[GitBranch]) -> Vec<GitBranch> {
+    local_branches
         .iter()
         .cloned()
         .filter(|branch| {
@@ -52,14 +50,12 @@ fn get_intersection(
                 .iter()
                 .any(|remote_branch| branch.name == remote_branch.name)
         })
-        .collect();
-
-    return intersection;
+        .collect()
 }
 
 fn get_user_confirmation(
-    stale_local_branches: &Vec<GitBranch>,
-    remote_branches: &Vec<GitBranch>,
+    stale_local_branches: &[GitBranch],
+    remote_branches: &[GitBranch],
 ) -> Result<bool> {
     println!("This will delete the following local and remote branches:");
 
@@ -78,7 +74,7 @@ fn get_user_confirmation(
     })
 }
 
-fn delete_branches(branches_to_delete: &Vec<GitBranch>, remote_name: &str) -> Result<()> {
+fn delete_branches(branches_to_delete: &[GitBranch], remote_name: &str) -> Result<()> {
     for branch in branches_to_delete {
         branch.delete()?;
     }

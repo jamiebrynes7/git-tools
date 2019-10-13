@@ -12,8 +12,8 @@ pub fn list_pruned_branches<S: AsRef<str>>(remote: S) -> Result<Vec<GitBranch>> 
     process
         .lines()
         .iter()
-        .filter(|s| s.contains("*"))
-        .map(|s| s.split("]").nth(1).unwrap().trim().to_string())
+        .filter(|s| s.contains('*'))
+        .map(|s| s.split(']').nth(1).unwrap().trim().to_string())
         .filter(|s| !s.is_empty())
         .filter_map(|s| {
             if s.starts_with(remote.as_ref()) {
@@ -31,9 +31,10 @@ pub fn prune_branches<S: AsRef<str>>(remote: S) -> Result<()> {
 }
 
 pub fn list_branches(show_remotes: bool) -> Result<Vec<GitBranch>> {
-    let list_branches_command = match show_remotes {
-        true => git(vec!["branch", "--all"])?,
-        false => git(vec!["branch", "--list"])?,
+    let list_branches_command = if show_remotes {
+        git(vec!["branch", "--all"])?
+    } else {
+        git(vec!["branch", "--list"])?
     };
 
     list_branches_command.get_error()?;
@@ -41,7 +42,7 @@ pub fn list_branches(show_remotes: bool) -> Result<Vec<GitBranch>> {
     list_branches_command
         .lines()
         .iter()
-        .map(|s| s.replace("*", "").trim().to_string())
+        .map(|s| s.replace('*', "").trim().to_string())
         .filter(|s| !s.is_empty() && !s.contains("->"))
         .map(|s| {
             if s.starts_with("remotes") {
@@ -93,7 +94,7 @@ impl ProcessOutput {
     }
 
     pub fn lines(&self) -> Vec<&str> {
-        self.stdout.split("\n").collect()
+        self.stdout.split('\n').collect()
     }
 }
 
@@ -115,7 +116,7 @@ impl GitBranch {
     // Expects input in the form of: "remotes/{origin_name}/feature/my-feature
     pub fn from_remote<S: Into<String>>(name: S) -> Result<Self> {
         let name = name.into();
-        let mut parts = name.split("/").skip(1);
+        let mut parts = name.split('/').skip(1);
 
         let remote_name = match parts.next() {
             Some(value) => value,
@@ -134,7 +135,7 @@ impl GitBranch {
 
     pub fn from_prune_ref<S: Into<String>>(name: S) -> Result<Self> {
         let name = name.into();
-        let mut parts = name.split("/");
+        let mut parts = name.split('/');
 
         let remote_name = match parts.next() {
             Some(value) => value,

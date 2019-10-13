@@ -1,6 +1,7 @@
 use std;
 
 // Internal
+use crate::errors::Result;
 use crate::commands::process::*;
 
 #[derive(PartialEq, Eq, Hash)]
@@ -10,38 +11,65 @@ pub struct GitBranch {
 }
 
 impl GitBranch {
-    pub fn delete(&self, should_log: bool) -> Result<(), String> {
-        match run_git_command(&vec![
-            "branch".to_string(),
-            "-D".to_string(),
-            self.name.clone(),
-        ]) {
-            ProcessOutput { code, .. } if code == 0 => {
-                if should_log {
-                    println!("Deleting {}...", self.name);
-                }
-                Ok(())
-            }
-            ProcessOutput { stderr, .. } => Err(format!(
-                "Failed to delete branch: {} with error: {}",
-                self.name, stderr
-            )),
+    // Expects input in the form of: "feature/my-feature"
+    pub fn from_local<S: Into<String>>(name: S) -> Self {
+        GitBranch {
+            name: name.into(),
+            remote_prefix: None
         }
     }
 
-    pub fn checkout(&self, should_log: bool) -> Result<(), String> {
-        match run_git_command(&vec!["checkout".to_string(), self.name.clone()]) {
-            ProcessOutput { code, .. } if code == 0 => {
-                if should_log {
-                    println!("Checking out {}...", self.name);
-                }
-                Ok(())
-            }
-            ProcessOutput { stderr, .. } => Err(format!(
-                "Failed to checkout branch: {} with error: {}",
-                self.name, stderr
-            )),
+    // Expects input in the form of: "remotes/{origin_name}/feature/my-feature
+    pub fn from_remote<S: Into<String>>(name: S) -> Result<Self> {
+        let name = name.into();
+        let mut parts = name.split("/").skip(1);
+
+        let remote_name = match parts.next() {
+            Some(value) => value,
+            None => return Err("Invalid remote branch format".into()),
+        };
+        let branch_name = parts.map(|s| s.to_string()).collect::<Vec<String>>().join("/");
+
+        Ok(GitBranch {
+            name: branch_name,
+            remote_prefix: Some(remote_name.to_string())
+        })
+    }
+
+    pub fn from_prune_ref<S: Into<String>>(name: S) -> Result<Self> {
+        let name = name.into();
+        let mut parts = name.split("/");
+
+        let remote_name = match parts.next() {
+            Some(value) => value,
+            None => return Err("Invalid pruned branch reference format".into()),
+        };
+        let branch_name = parts.map(|s| s.to_string()).collect::<Vec<String>>().join("/");
+
+        Ok(GitBranch {
+            name: branch_name,
+            remote_prefix: Some(remote_name.to_string())
+        })
+    }
+
+    pub fn delete(&self, should_log: bool) -> Result<()> {
+        let process = git(vec!["branch", "-D", &self.name])?;
+        if !process.success() {
+            return Err(format!("Failed to delete branch {} with error {}", self.name, process.stderr).into());
         }
+
+        println!("Deleting {} ... ", self.name);
+        Ok(())
+    }
+
+    pub fn checkout(&self, should_log: bool) -> Result<()> {
+        let process = git(vec!["checkout", &self.name])?;
+        if !process.success() {
+            return Err(format!("Failed to checkout branch {} with error {}", self.name, process.stderr).into());
+        }
+
+        println!("Checking out {} ...", self.name);
+        Ok(())
     }
 }
 

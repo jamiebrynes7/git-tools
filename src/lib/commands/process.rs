@@ -1,36 +1,46 @@
 use std::process;
+use crate::errors::Result;
+use std::ffi::OsStr;
 
 pub struct ProcessOutput {
     pub stdout: String,
     pub stderr: String,
-    pub code: i32,
+    pub status_code: i32,
 }
 
-pub fn run_git_command(args: &Vec<String>) -> ProcessOutput {
-    let command_response = process::Command::new("git").args(args.clone()).output();
-    let out = match command_response {
-        Ok(v) => v,
-        Err(e) => panic!("Error: {}", e),
+impl ProcessOutput {
+    pub fn get_error(&self) -> Result<()> {
+        if self.status_code == 0 {
+            return Ok(());
+        }
+
+        Err(self.stderr.clone().into())
+    }
+
+    pub fn success(&self) -> bool {
+        self.status_code == 0
+    }
+
+    pub fn lines(&self) -> Vec<&str> {
+        self.stdout.split("\n").collect()
+    }
+}
+
+pub fn git<I, S>(args: I) -> Result<ProcessOutput> where I: IntoIterator<Item=S>, S: AsRef<OsStr> {
+    let command = process::Command::new("git")
+        .args(args)
+        .output()?;
+
+    let stdout = String::from_utf8(command.stdout)?;
+    let stderr = String::from_utf8(command.stderr)?;
+    let status_code = match command.status.code() {
+        Some(value) => value,
+        None => return Err("Git command did not have exit code!?".into())
     };
 
-    let stdout = match String::from_utf8(out.stdout) {
-        Ok(v) => v,
-        Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-    };
-
-    let stderr = match String::from_utf8(out.stderr) {
-        Ok(v) => v,
-        Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-    };
-
-    let code = out
-        .status
-        .code()
-        .expect(&format!("No error code in command: git {:?}", args));
-
-    ProcessOutput {
+    Ok(ProcessOutput {
         stdout,
         stderr,
-        code,
-    }
+        status_code,
+    })
 }

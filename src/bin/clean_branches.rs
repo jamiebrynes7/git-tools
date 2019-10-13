@@ -1,13 +1,13 @@
+use git::*;
 use structopt::StructOpt;
-use git::commands::branches::list_branches;
-use git::commands::prune::{prune_branches, list_pruned_branches};
-use git::git_branch::GitBranch;
-use git::errors::Result;
 
 use std::io::{self, Write};
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "git-clean-branches", about="Clean remote and local branches.")]
+#[structopt(
+    name = "git-clean-branches",
+    about = "Clean remote and local branches."
+)]
 struct Arguments {
     /// Denotes whether to list remote branches.
     #[structopt(short = "r", long, default_value = "origin")]
@@ -15,7 +15,7 @@ struct Arguments {
 }
 
 fn main() -> Result<()> {
-    let args : Arguments = Arguments::from_args();
+    let args: Arguments = Arguments::from_args();
 
     let pruned_branches = list_pruned_branches(&args.remote)?;
 
@@ -78,9 +78,9 @@ fn get_user_confirmation(
     })
 }
 
-fn delete_branches(branches_to_delete: &Vec<GitBranch>, remote_name: &str) -> Result<()>{
+fn delete_branches(branches_to_delete: &Vec<GitBranch>, remote_name: &str) -> Result<()> {
     for branch in branches_to_delete {
-        branch.delete(true)?;
+        branch.delete()?;
     }
 
     prune_branches(remote_name)

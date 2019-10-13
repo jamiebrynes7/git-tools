@@ -1,14 +1,15 @@
 use structopt::StructOpt;
 
-use git::commands::branches::list_branches;
-use git::git_branch::GitBranch;
-use git::errors::Result;
+use git::*;
 
 use std::io::{self, Write};
 use std::process;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "git-branch-selector", about="Quickly switch between Git branches.")]
+#[structopt(
+    name = "git-branch-selector",
+    about = "Quickly switch between Git branches."
+)]
 struct Arguments {
     /// Denotes whether to list remote branches.
     #[structopt(short = "r", long)]
@@ -22,12 +23,12 @@ enum UserInputResult {
 }
 
 fn main() -> Result<()> {
-    let args : Arguments = Arguments::from_args();
+    let args: Arguments = Arguments::from_args();
 
     let branch_list = list_branches(args.show_remotes)?;
     let desired_branch_index = select_branch_index(&branch_list)? - 1;
 
-    branch_list[desired_branch_index].checkout(true)
+    branch_list[desired_branch_index].checkout()
 }
 
 fn select_branch_index(branches: &Vec<GitBranch>) -> Result<usize> {
@@ -58,7 +59,9 @@ fn get_user_input(max_value: usize) -> Result<UserInputResult> {
         x => match x.parse::<usize>() {
             Ok(i) => {
                 if i > max_value || i == 0 {
-                    Ok(UserInputResult::Invalid("Given branch index does not exist.".to_string()))
+                    Ok(UserInputResult::Invalid(
+                        "Given branch index does not exist.".to_string(),
+                    ))
                 } else {
                     Ok(UserInputResult::Valid(i))
                 }

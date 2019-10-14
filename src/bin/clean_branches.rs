@@ -1,75 +1,48 @@
-extern crate clap;
-use clap::{App, Arg};
-
-extern crate git;
-use git::commands::branches::get_list_branches;
-use git::commands::prune::{get_pruned_branches, prune_branches};
-use git::git_branch::GitBranch;
-use git::utils::errors::*;
+use git::*;
+use structopt::StructOpt;
 
 use std::io::{self, Write};
 
+#[derive(Debug, StructOpt)]
+#[structopt(
+    name = "git-clean-branches",
+    about = "Clean remote and local branches."
+)]
 struct Arguments {
-    remote_name: String,
+    /// Denotes whether to list remote branches.
+    #[structopt(short = "r", long, default_value = "origin")]
+    remote: String,
 }
 
-fn main() {
-    let args = get_arguments();
+fn main() -> Result<()> {
+    let args: Arguments = Arguments::from_args();
 
-    let pruned_branch_list = match get_pruned_branches(args.remote_name.clone()) {
-        Ok(list) => list,
-        Err(e) => {
-            error_and_exit(e);
-            panic!()
-        }
-    };
-    let branch_list = match get_list_branches(false /* No remotes*/) {
-        Ok(list) => list,
-        Err(e) => {
-            error_and_exit(e);
-            panic!()
-        }
-    };
-    let branches_to_delete: Vec<GitBranch> = get_intersection(&pruned_branch_list, &branch_list);
+    let pruned_branches = list_pruned_branches(&args.remote)?;
 
-    if branches_to_delete.len() == 0 {
-        println!("Found no branches to delete!");
-        return;
+    if pruned_branches.is_empty() {
+        println!("Found no pruned remote branches!");
+        return Ok(());
     }
 
-    match get_user_confirmation(&branches_to_delete, &pruned_branch_list) {
-        true => delete_branches(&branches_to_delete, args.remote_name.clone()),
-        false => println!("Aborting operation!"),
+    let local_branches = list_branches(false)?;
+
+    let stale_local_branches = get_intersection(&pruned_branches, &local_branches);
+
+    if stale_local_branches.is_empty() {
+        println!("Found no local branches to delete!");
     }
+
+    if get_user_confirmation(&stale_local_branches, &pruned_branches)? {
+        delete_branches(&stale_local_branches, &args.remote)?;
+    } else {
+        println!("Aborting operation!");
+    }
+
+    Ok(())
 }
 
-fn get_arguments() -> Arguments {
-    let matches = App::new("Git Clean Branches")
-        .version("0.3.1")
-        .author("Jamie Brynes <jamiebrynes7@gmail.com>")
-        .about("Cleans remote and local branches that have been deleted.")
-        .arg(
-            Arg::with_name("remote-name")
-                .short("n")
-                .long("remote-name")
-                .value_name("NAME")
-                .help("The remote to base the clean off of. Default value is \"origin\"")
-                .takes_value(true),
-        )
-        .get_matches();
-
-    let remote_name = matches.value_of("remote-name").unwrap_or("origin");
-
-    Arguments {
-        remote_name: remote_name.to_string(),
-    }
-}
-
-fn get_intersection(
-    remote_branches: &Vec<GitBranch>,
-    local_branches: &Vec<GitBranch>,
-) -> Vec<GitBranch> {
-    let intersection = local_branches
+fn get_intersection(remote_branches: &[GitBranch], local_branches: &[GitBranch]) -> Vec<GitBranch> {
+    local_branches
         .iter()
         .cloned()
         .filter(|branch| {
@@ -77,46 +50,34 @@ fn get_intersection(
                 .iter()
                 .any(|remote_branch| branch.name == remote_branch.name)
         })
-        .collect();
-
-    return intersection;
+        .collect()
 }
 
 fn get_user_confirmation(
-    branches_to_delete: &Vec<GitBranch>,
-    remote_branches: &Vec<GitBranch>,
-) -> bool {
+    stale_local_branches: &[GitBranch],
+    remote_branches: &[GitBranch],
+) -> Result<bool> {
     println!("This will delete the following local and remote branches:");
-    for branch in branches_to_delete {
-        println!(" * {}", branch);
-    }
-    for branch in remote_branches {
+
+    for branch in stale_local_branches.iter().chain(remote_branches) {
         println!(" * {}", branch);
     }
 
     print!("\nEnter y to confirm: ");
     io::stdout().flush().unwrap();
     let mut user_input = String::new();
-    io::stdin()
-        .read_line(&mut user_input)
-        .expect("Failed to read from stdin.");
+    io::stdin().read_line(&mut user_input)?;
 
-    match user_input.trim().to_lowercase().as_str() {
+    Ok(match user_input.trim().to_lowercase().as_str() {
         "y" => true,
         _ => false,
-    }
+    })
 }
 
-fn delete_branches(branches_to_delete: &Vec<GitBranch>, remote_name: String) {
+fn delete_branches(branches_to_delete: &[GitBranch], remote_name: &str) -> Result<()> {
     for branch in branches_to_delete {
-        match branch.delete(true) {
-            Ok(_) => {}
-            Err(e) => println!("{}", e),
-        }
+        branch.delete()?;
     }
 
-    match prune_branches(remote_name) {
-        Ok(_) => {}
-        Err(e) => println!("{}", e),
-    }
+    prune_branches(remote_name)
 }

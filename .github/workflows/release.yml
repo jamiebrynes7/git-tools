@@ -1,0 +1,41 @@
+on: [release]
+
+name: Publish release binaries
+
+jobs: 
+  generate-artifact:
+    name: Create release artifact
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@master
+
+      - name: Install Rust
+        if: matrix.os == 'macOS-latest'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Build binary
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+
+      - name: Zip binaries (Unix)
+        run: zip git-tools-${{ matrix.os }}-x86_64.zip ./target/release/branch_selector ./target/release/clean_branches
+        if: matrix.os != 'windows-latest'
+
+      - name: Zip binaries (Windows)
+        run: 7z.exe a ./git-tools-x86_64-pc-windows.zip ./target/release/branch_selector.exe ./target/release/clean_branches.exe
+        if: matrix.os == 'windows-latest'
+      
+      - name: Upload binaries
+        uses: skx/github-action-publish-binaries@master
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: 'git-tools*.zip'

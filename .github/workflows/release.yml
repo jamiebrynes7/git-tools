@@ -27,12 +27,16 @@ jobs:
           command: build
           args: --release
 
-      - name: Zip binaries (Unix)
-        run: zip git-tools-${{ matrix.os }}-x86_64.zip ./target/release/branch_selector ./target/release/clean_branches
-        if: matrix.os != 'windows-latest'
+      - name: Zip binaries (MacOS)
+        run: zip git-tools-x86_64-darwin.zip ./target/release/branch_selector ./target/release/clean_branches
+        if: matrix.os == 'macOS-latest'
+
+      - name: Zip binaries (Linux)
+        run: zip git-tools-x86_64-linux.zip ./target/release/branch_selector ./target/release/clean_branches
+        if: matrix.os == 'ubuntu-latest'
 
       - name: Zip binaries (Windows)
-        run: 7z.exe a ./git-tools-x86_64-pc-windows.zip ./target/release/branch_selector.exe ./target/release/clean_branches.exe
+        run: 7z.exe a ./git-tools-x86_64-windows.zip ./target/release/branch_selector.exe ./target/release/clean_branches.exe
         if: matrix.os == 'windows-latest'
       
       - name: Upload binaries
